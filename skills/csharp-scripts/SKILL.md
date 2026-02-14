@@ -146,7 +146,7 @@ Replace the generated `Program.cs` with the script content and run with `dotnet 
 ## Validation
 
 - [ ] `dotnet --version` reports 10.0 or later (or fallback path is used)
-- [ ] The script compiles without errors
+- [ ] The script compiles without errors (can be checked explicitly with `dotnet build <file>.cs`)
 - [ ] `dotnet <file>.cs` produces the expected output
 - [ ] Script file and cached artifacts are cleaned up after the session
 
@@ -161,4 +161,4 @@ Replace the generated `Program.cs` with the script content and run with `dotnet 
 
 ## More info
 
-See https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/tutorials/file-based-programs for a tutorial on file-based programs
+See https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps for a full reference on file-based apps.
