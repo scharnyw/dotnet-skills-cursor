@@ -97,6 +97,14 @@ foreach ($verdict in $results.verdicts) {
             $scenarioTimedOut = $true
         }
 
+        # Check overfitting state (from verdict-level overfittingResult)
+        $overfittingSeverity = $null
+        $overfittingScore = $null
+        if ($verdict.overfittingResult -and $verdict.overfittingResult.severity -in @("Moderate", "High")) {
+            $overfittingSeverity = $verdict.overfittingResult.severity.ToLower()
+            $overfittingScore = $verdict.overfittingResult.score
+        }
+
         # Quality scores (from judge results, scale 0-5 mapped to 0-10 for dashboard)
         if ($null -ne $scenario.withSkill.judgeResult.overallScore) {
             $benchEntry = @{
@@ -109,6 +117,10 @@ foreach ($verdict in $results.verdicts) {
             }
             if ($scenarioTimedOut) {
                 $benchEntry.timedOut = $true
+            }
+            if ($overfittingSeverity) {
+                $benchEntry.overfitting = $overfittingSeverity
+                $benchEntry.overfittingScore = $overfittingScore
             }
             $qualityBenches.Add($benchEntry)
         }
@@ -133,6 +145,10 @@ foreach ($verdict in $results.verdicts) {
             if ($scenarioTimedOut) {
                 $effBenchEntry.timedOut = $true
             }
+            if ($overfittingSeverity) {
+                $effBenchEntry.overfitting = $overfittingSeverity
+                $effBenchEntry.overfittingScore = $overfittingScore
+            }
             $efficiencyBenches.Add($effBenchEntry)
         }
         if ($null -ne $scenario.withSkill.metrics.tokenEstimate) {
@@ -146,6 +162,10 @@ foreach ($verdict in $results.verdicts) {
             }
             if ($scenarioTimedOut) {
                 $tokenBenchEntry.timedOut = $true
+            }
+            if ($overfittingSeverity) {
+                $tokenBenchEntry.overfitting = $overfittingSeverity
+                $tokenBenchEntry.overfittingScore = $overfittingScore
             }
             $efficiencyBenches.Add($tokenBenchEntry)
         }
