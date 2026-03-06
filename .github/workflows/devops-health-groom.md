@@ -159,6 +159,8 @@ Additionally, in the **📌 Existing Findings** section, if any finding that was
 
 Now that both Step 3 (linking investigation results) and Step 4 (marking resolved findings) have been applied to the in-memory issue body, make a **single** `update-issue` call with the combined changes.
 
+**Before calling `update-issue`**, run the body-length sanity check (see Guidelines). If the check fails, **abort the entire workflow** — skip `update-issue`, skip Step 5 (hide comments), and call `noop` with the error.
+
 Only call `update-issue` if at least one change was made across Steps 3 and 4. If nothing changed, skip the call.
 
 ---
@@ -221,9 +223,12 @@ If changes were made, the summary is implicit in the safe-output calls. Do NOT c
 
 ## Guidelines
 
+- **CRITICAL — Safe output body must be inline**: When calling `update-issue`, the `body` field must contain the **complete, literal issue body text**. NEVER write the body to a file and use a shell reference like `$(cat file.txt)` — safe outputs are literal JSON strings, not shell-evaluated. The body must be passed directly as the string value.
+- **CRITICAL — Body length sanity check**: Before calling `update-issue`, verify the new body is at least 80% the length of the original body. If it is significantly shorter, something went wrong — **stop immediately**: do NOT call `update-issue`, do NOT call `hide-comment`, and call `noop` with an error message describing the length mismatch. This check runs before any safe-output calls, so `noop` is always safe here. The health check body is typically 3000–8000 characters.
+- **Minimal edits only**: You are a groomer, not a rewriter. Only change: (a) investigation table rows (status + link), (b) resolved-finding annotations. Copy all other sections **byte-for-byte** from the original body. Do not reformat, re-wrap, or reorganize sections you are not changing.
 - **Be precise with comment parsing**: The comment format is well-defined (see the investigation worker template). Match the exact patterns — don't be fuzzy.
 - **Preserve the issue body structure**: When updating the issue body, keep ALL sections intact. Only modify the Investigation Results table rows and any resolved-finding annotations. Do not rewrite sections you don't need to change.
 - **Don't hide "Other" comments**: Only hide comments that match the Investigation or Daily overview patterns. Human comments, bot reactions, etc. must be preserved.
 - **Idempotent**: Running this workflow twice should produce the same result. If investigation results are already linked, don't re-link them. If comments are already hidden, they won't appear in the API results (collapsed).
 - **Graceful degradation**: If the issue body doesn't contain an Investigation Results section (e.g., first run before any investigations), skip Step 3 and proceed to hiding stale comments.
-- **Logging**: For each hide operation, note the comment category, age, and reason.
+- **No intermediate files**: Do all work in memory. Do NOT write intermediate scripts, JSON files, or body text files. Parse API responses with `jq` inline and hold the issue body as a string variable.
